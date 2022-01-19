@@ -1,32 +1,34 @@
 * Early Package Init
 
 ** Synopsis
-Facilitate the use /package.el/ infrastructure to load packages
+Facilitate the use =package.el= infrastructure to load packages
 outside of =~/.emacs.d/elpa/=
 
 ** Description
 
 We want to track some upstream emacs-lisp packages in our own local
-repositories but also want to use /package.el/ to load other packages
-from =elpa=.  =early-package-init.el= is intended to facilitate this.
+repositories but also want to use =package.el= to load other packages
+from =elpa=.
+
+This is facilitated by =early-package-init.el=
 
 ** How it works
-For some package "P" we generate the =P-pkg.el= file and the
+For some package =P= we generate the =P-pkg.el= file and the
 =P-autoloads.el= with =early-package-init--generate-files=, giving it
 the information that the package maintainer would provide such as
 emacs compatibility and version.  (These files are needed by
-/package.el/ to handle the package)
+=package.el= to handle the package)
 
 Then we set up =early-package-init-alist= with an alist entry
-='("~/elisp/pkg/P" "P")= which informs /early-package-init/ that the
-package named ="P"= is found in the directory ="~/elisp/pkg/P"=.
+("~/elisp/pkg/P" "P") which informs =early-package-init.el= that the
+package named =P= is found in the directory =~/elisp/pkg/P=.
 
-/early-package-init/ advices =package-load-all-descriptors= which gets
-called at some point in emacs early-init startup.  When this happens
-/early-package-init/ will use /package.el/ functions to load and
-activate our package "P" from our specified directory.
+=early-package-init.el= advices =package-load-all-descriptors= which
+gets called at some point in emacs early-init startup.  When this
+happens =early-package-init.el= will use =package.el= functions to
+load and activate our package =P= from our specified directory.
 
-We also have to tell /package.el/ not to touch this package, /i.e./ to
+We also have to tell =package.el= not to touch this package, /i.e./ to
 not update it or delete it. This can be done by sticking an alist
 entry =("P" . local)= in =package-pinned-packages=.
 
@@ -43,11 +45,13 @@ would contain something like this:
 
 **  setup
 Let's say you put external projects under =~/elisp/pkg=, say you have
-cloned upstream packages /`ggtags'/ and /`sly'/ to a local location and
+cloned upstream packages /ggtags/ and /sly/ to a local location and
 want to use these instead of what you get from /Elpa/ or /MELPA/.
 
-#+EXAMPLE git clone https://github.com/leoliu/ggtags ~/elisp/pkg/ggtags
-#+EXAMPLE git clone https://github.com/joaotavora/sly ~/elisp/pkg/sly
+#+begin_example
+git clone https://github.com/leoliu/ggtags ~/elisp/pkg/ggtags
+git clone https://github.com/joaotavora/sly ~/elisp/pkg/sly
+#+end_example
 
 First generate the =pkg= and =autoload= files
 
@@ -57,7 +61,7 @@ First generate the =pkg= and =autoload= files
 (early-package-init--generate-files "~/elisp/pkg/sly" :single-file-p nil)
 #+end_src
 
-This should have created =ggtags-pkg.el= and =ggtags-autoloads.el= in
+This should create =ggtags-pkg.el= and =ggtags-autoloads.el= in
 =~/elisp/pkg/ggtags=
 
 /sly/ already ships with a =sly-autoloads.el= and
@@ -66,7 +70,7 @@ This should have created =ggtags-pkg.el= and =ggtags-autoloads.el= in
 =:force-autoload-generation t= keyword argument and parameter)
 
 Now to arrange for /ggtags/ and /sly/ to be loaded up through the
-/package.el/ mechanism when Emacs starts, we have to use the
+=package.el= mechanism when Emacs starts up, we have to use the
 =early-init.el= file. Conult =C-h v early-init-file= and the relevant
 portions of the emacs manual.
 *** ~/.emacs.d/early-init.el
