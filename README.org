@@ -1,0 +1,106 @@
+* Early Package Init
+
+** Synopsis
+Facilitate the use /package.el/ infrastructure to load packages
+outside of =~/.emacs.d/elpa/=
+
+** Description
+
+We want to track some upstream emacs-lisp packages in our own local
+repositories but also want to use /package.el/ to load other packages
+from =elpa=.  =early-package-init.el= is intended to facilitate this.
+
+** How it works
+For some package "P" we generate the =P-pkg.el= file and the
+=P-autoloads.el= with =early-package-init--generate-files=, giving it
+the information that the package maintainer would provide such as
+emacs compatibility and version.  (These files are needed by
+/package.el/ to handle the package)
+
+Then we set up =early-package-init-alist= with an alist entry
+='("~/elisp/pkg/P" "P")= which informs /early-package-init/ that the
+package named ="P"= is found in the directory ="~/elisp/pkg/P"=.
+
+/early-package-init/ advices =package-load-all-descriptors= which gets
+called at some point in emacs early-init startup.  When this happens
+/early-package-init/ will use /package.el/ functions to load and
+activate our package "P" from our specified directory.
+
+We also have to tell /package.el/ not to touch this package, /i.e./ to
+not update it or delete it. This can be done by sticking an alist
+entry =("P" . local)= in =package-pinned-packages=.
+
+All this has to be done in ="~/.emacs.d/early-init.el"= file, which
+would contain something like this:
+
+#+begin_example
+(require 'package)
+(setq package-pinned-packages '(("P" . local) ... ))
+(load "~/elisp/early-package-init/early-package-init.el")
+(setq early-package-init-alist '(("~/elisp/pkg/p" "P") ... ))
+;; emacs should call (package-initialize) at some point after this
+#+end_example
+
+**  setup
+Let's say you put external projects under =~/elisp/pkg=, say you have
+cloned upstream packages /`ggtags'/ and /`sly'/ to a local location and
+want to use these instead of what you get from /Elpa/ or /MELPA/.
+
+#+EXAMPLE git clone https://github.com/leoliu/ggtags ~/elisp/pkg/ggtags
+#+EXAMPLE git clone https://github.com/joaotavora/sly ~/elisp/pkg/sly
+
+First generate the =pkg= and =autoload= files
+
+#+begin_src elisp
+(load "~/elisp/early-package-init/early-package-init.el")
+(early-package-init--generate-files "~/elisp/pkg/ggtags" "ggtags" "0.18.3")
+(early-package-init--generate-files "~/elisp/pkg/sly" :single-file-p nil)
+#+end_src
+
+This should have created =ggtags-pkg.el= and =ggtags-autoloads.el= in
+=~/elisp/pkg/ggtags=
+
+/sly/ already ships with a =sly-autoloads.el= and
+=early-package-init--generate-files= will not overwrite it in
+=~/elisp/pkg/sly/sly-autoloads.el= (unless of course you pass the
+=:force-autoload-generation t= keyword argument and parameter)
+
+Now to arrange for /ggtags/ and /sly/ to be loaded up through the
+/package.el/ mechanism when Emacs starts, we have to use the
+=early-init.el= file. Conult =C-h v early-init-file= and the relevant
+portions of the emacs manual.
+*** ~/.emacs.d/early-init.el
+#+begin_src elisp
+(require 'package)
+(if (null package-pinned-packages)
+(setq package-pinned-packages '(
+				("ggtags" . local)
+				("sly" . local)
+				, ...
+				)))
+(load "~/elisp/early-package-init/early-package-init.el")
+
+(setq early-package-init-alist
+  '(( "~/elisp/pkg/ggtags" "ggtags")
+    ( "~/elisp/pkg/sly" "sly")
+    ...
+    ))
+#+end_src
+
+** JUNK AT EOF
+#+begin_src elisp
+(when nil
+(setq package-enable-at-startup t);default
+(setq package-load-list '(all))	  ;default
+(early-package-init--generate-files "~/elisp/pkg/minad/orderless" "orderless" "0.9"  "Completion style for matching regexps in any order" '((emacs "26.1")) :single-file-p nil)
+; if package.el is already initialized
+(let ((early-package-init--activate-p t)) (package-load-all-descriptors))
+(let ((early-package-init--activate-p t))
+  (early-package-init---load-descriptor-and-activate "~/elisp/pkg/minad/orderless/" "orderless"))
+)
+;;;   Touched: Wed Jan 19 18:24:22 2022 +0530 <enometh@net.meer>
+;;;   Bugs-To: enometh@net.meer
+;;;   Status: Experimental.  Do not redistribute
+;;;   Copyright (C) 2022 Madhu.
+#+end_src
+
