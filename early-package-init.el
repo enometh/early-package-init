@@ -1,16 +1,18 @@
-;; early-package-init.el
+;;; early-package-init.el
 ;;
-;;  This file should be called frome early-init.el before
-;;  `package-initialize' is called by emacs.  it contains a function
+;;  This file should be loaded from early-init.el before
+;;  `package-initialize' is called by emacs.  It contains a function
 ;;  which must be called *within* `package-initialize' when
-;;  `package-initialize' runs for the first time.
+;;  `package-initialize' runs for the first time. See
+;;  `early-package-init---load-descriptor-and-activate'
 ;;
-;;  This file operates on the variable `early-package-init-alist'
-;;  which must be set elsewhere, again, before `package-initialize'
-;;  runs.  This defines the paths and the names of the packages which
-;;  are to be exposed to package.el through early-package-init.el.
+;;  The functions defined in this file operate on a variable
+;;  `early-package-init-alist' which must be set elsewhere, again,
+;;  before `package-initialize' runs.  This variable sets the paths
+;;  and the names of /the packages/ which should be be exposed to
+;;  package.el through early-package-init.el.
 ;;
-;;  These packages also have to be specified in
+;;  /The packages/ also have to be specified in
 ;; `package-pinned-packages' so package.el won't update them.
 
 (require 'package)
@@ -28,13 +30,12 @@
 				     force-pkg-file-generation)
   "Helper function.
 Generate the autoload and package \"pkg.el\" files for the
-package named $pkg-name-string in directory $pkg-dir. If
-$pkg-name is null infer the name from $pkg-dir.
+package named $PKG-NAME-STRING in directory $PKG-DIR. If
+$PKG-NAME is null infer the name from $PKG-DIR.
 
-If single-file-p is nil then the autoloads are generated for all
+If SINGLE-FILE-P is nil then the autoloads are generated for all
 files in the directory.  But the point of the game is to have
-multiple packages in the same directory
-"
+multiple packages in the same directory"
   (unless $pkg-name-string
     (setq $pkg-name-string
 	  (string-trim-right (package--description-file $pkg-dir)
@@ -75,10 +76,10 @@ multiple packages in the same directory
 (cl-defun early-package-init---load-descriptor-and-activate
     ($pkg-dir &optional $pkg-name-string &key
 	      (activate-p early-package-init--activate-p))
-  "Load the package description file in $pkg-dir for the package
-named $pkg-name-string.  Note that the $pkg-name-string can be
-different from the basename of $pkg-dir and multiple packages can
-reside in the same $pkg-dir.
+  "Load the package description file in $PKG-DIR for the package
+named $PKG-NAME-STRING.  Note that THE $PKG-NAME-STRING can be
+different from the basename of $PKG-DIR and multiple packages can
+reside in the same $PKG-DIR.
 
 Create a new `package-desc' object, add it to `package-alist',
 if `activate-p' is non-NIL activate it - put it in
@@ -88,8 +89,7 @@ selected in `package-selected-list'
 This function has to be called *in* `package-initialize' *after*
 it uncaringly resets `package-alist' and *before* it calls
 `package-load-all-descriptors'. So it can only be called in a
-before-method of `package-load-all-descriptors.'
-"
+before-method of `package-load-all-descriptors.'"
   (let (($pkg-file nil) (signed-file (concat $pkg-dir ".signed")))
     (if (null $pkg-name-string)
 	(setq $pkg-file
@@ -123,3 +123,7 @@ before-method of `package-load-all-descriptors.'
   (cl-loop for (dir name) in early-package-init-alist
 	   do (early-package-init---load-descriptor-and-activate dir name)))
 
+
+(provide 'early-package-init)
+
+;;; early-package-init.el ends here
