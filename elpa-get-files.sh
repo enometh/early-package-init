@@ -53,8 +53,8 @@ done
 
 # Figure out the branch on which to commit. This would be the name of
 # the package we are on, but let the user override it for testing.
+dir=$(basename $(pwd))
 if [ -z "$BRANCH" ]; then
-    dir=$(basename $(pwd))
     if [[ $dir =~ (.+)-([0-9._]+) ]]; then
 	BRANCH=${BASH_REMATCH[1]}
     fi
