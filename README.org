@@ -91,7 +91,15 @@ portions of the emacs manual.
     ))
 #+end_src
 
-** JUNK AT EOF
+* ADDENDA LOG
+** elpa-get-files.sh
+- =[Nov 03 2021 20:00:29]=
+checked in elpa-get-files.sh which is unrelated to
+=early-package-init.el= as it helps track changes to packages in
+=~/.emacs.d/elpa= which are managed by =package.el=
+
+
+* JUNK AT EOF
 #+begin_src elisp
 (when nil
 (setq package-enable-at-startup t);default
