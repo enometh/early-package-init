@@ -1,4 +1,4 @@
-;;; early-package-init.el
+;;; early-package-init.el  -*- lexical-binding: t -*-
 ;;
 ;;  This file should be loaded from early-init.el before
 ;;  `package-initialize' is called by emacs.  It contains a function
